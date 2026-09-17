@@ -64,3 +64,9 @@ Route::get('/doctors', [DoctorController::class, 'index']);
 Route::get('/content-types', [ContentTypeController::class, 'index']);
 Route::get('/course-offerings', [CourseOfferingController::class, 'index']);
 Route::get('/course-doctors', [CourseDoctorController::class, 'index']);
+
+
+// هذه  APIs الاضافه والحذف والتعديل للاقسام
+Route::post('/departments', [DepartmentController::class, 'store']);
+Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
