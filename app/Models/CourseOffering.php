@@ -21,6 +21,11 @@ class CourseOffering extends Model
     {
         return $this->belongsTo(Course::class, 'course_id', 'course_id');
     }
+    
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class, 'semester_id', 'semester_id');
+    }
 
     public function courseDoctors()
     {

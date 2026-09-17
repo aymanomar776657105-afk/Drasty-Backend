@@ -9,6 +9,43 @@ use Exception;
 
 class CourseOfferingController extends Controller
 {
+    public function index(Request $request)
+    {
+        $query = CourseOffering::with([
+            'course:course_id,course_code,course_name_ar',
+            'semester:semester_id,name',
+            'courseDoctors.doctor.user:user_id,full_name'
+        ]);
+
+        if ($request->filled('semester_id')) {
+            $query->where('semester_id', $request->semester_id);
+        }
+
+        $offerings = $query->latest('offering_id')->get();
+
+        // تحويل البيانات إلى شكل مسطح ومباشر للواجهة
+        $cleanedData = $offerings->map(function ($offering) {
+            return [
+                'offering_id'   => $offering->offering_id,
+                'course_code'   => $offering->course->course_code ?? null,
+                'course_name'   => $offering->course->course_name_ar ?? null,
+                'semester_name' => $offering->semester->name ?? null,
+                'doctors'       => $offering->courseDoctors->map(function ($cd) {
+                    return [
+                        'course_doctor_id' => $cd->course_doctor_id,
+                        'doctor_name'      => $cd->doctor->user->full_name ?? 'غير محدد',
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'count'  => $cleanedData->count(),
+            'data'   => $cleanedData
+        ], 200);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -33,7 +70,6 @@ class CourseOfferingController extends Controller
                 'message' => 'تم طرح المادة في الفصل الدراسي بنجاح',
                 'data'    => $offering->load('course')
             ], 201);
-
         } catch (Exception $e) {
             return response()->json([
                 'status'  => false,

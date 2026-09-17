@@ -9,6 +9,46 @@ use Exception;
 
 class CourseDoctorController extends Controller
 {
+   public function index(Request $request)
+{
+    // جلب العلاقات اللازمة حتى الوصول للقسم مع التأكد من جلب المفاتيح الأساسية والأجنبية
+    $query = CourseDoctor::with([
+        'doctor.user:user_id,full_name',
+        'offering.course:course_id,course_code,course_name_ar',
+        'offering.semester:semester_id,level_id,name',
+        'offering.semester.level:level_id,department_id,name',
+        'offering.semester.level.department:department_id,name',
+    ]);
+
+    if ($request->filled('offering_id')) {
+        $query->where('offering_id', $request->offering_id);
+    }
+
+    $assignments = $query->latest('course_doctor_id')->get();
+
+    // تشكيل الاستجابة وإضافة القسم والمستوى
+    $flattened = $assignments->map(function ($item) {
+        $semester   = $item->offering->semester ?? null;
+        $level      = $semester->level ?? null;
+        $department = $level->department ?? null;
+
+        return [
+            'course_doctor_id' => $item->course_doctor_id,
+            'doctor_name'      => $item->doctor->user->full_name ?? 'غير محدد',
+            'course_name'      => $item->offering->course->course_name_ar ?? 'غير محدد',
+            'course_code'      => $item->offering->course->course_code ?? null,
+            'department_name'  => $department->name ?? 'غير محدد',
+            'level_name'       => $level->name ?? 'غير محدد',
+            'semester_name'    => $semester->name ?? 'غير محدد',
+        ];
+    });
+
+    return response()->json([
+        'status' => true,
+        'count'  => $flattened->count(),
+        'data'   => $flattened
+    ], 200);
+}
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -33,7 +73,6 @@ class CourseDoctorController extends Controller
                 'message' => 'تم تعيين الدكتور للمادة بنجاح',
                 'data'    => $courseDoctor->load(['doctor.user', 'offering.course'])
             ], 201);
-
         } catch (Exception $e) {
             return response()->json([
                 'status'  => false,

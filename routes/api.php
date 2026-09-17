@@ -10,14 +10,9 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseOfferingController;
 use App\Http\Controllers\CourseDoctorController;
 
+use App\Http\Controllers\ContentTypeController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
-Route::get("/hello",function(){
-    return "Hi from API";
-});
 
 Route::post('/check-user', [UserController::class, 'checkUser']);
 
@@ -56,3 +51,16 @@ use App\Http\Controllers\SemesterController;
 Route::get('/levels', [LevelController::class, 'index']);
 Route::post('/levels', [LevelController::class, 'store']);
 Route::post('/semesters', [SemesterController::class, 'store']);
+
+
+
+
+
+// مسارات العرض والتهيئة للواجهات
+
+// هنا هلهن APIs  العرض
+Route::get('/courses', [CourseController::class, 'index']);
+Route::get('/doctors', [DoctorController::class, 'index']);
+Route::get('/content-types', [ContentTypeController::class, 'index']);
+Route::get('/course-offerings', [CourseOfferingController::class, 'index']);
+Route::get('/course-doctors', [CourseDoctorController::class, 'index']);

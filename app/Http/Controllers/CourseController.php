@@ -8,6 +8,17 @@ use Exception;
 
 class CourseController extends Controller
 {
+    public function index()
+    {
+        $courses = Course::orderBy('course_name_ar', 'asc')->get();
+
+        return response()->json([
+            'status' => true,
+            'count'  => $courses->count(),
+            'data'   => $courses
+        ], 200);
+    }
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -40,4 +51,5 @@ class CourseController extends Controller
             ], 500);
         }
     }
+
 }

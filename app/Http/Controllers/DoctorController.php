@@ -12,8 +12,18 @@ use Illuminate\Support\Str;
 
 class DoctorController extends Controller
 {
-    
-   public function store(Request $request)
+    public function index()
+    {
+        $doctors = Doctor::with('user:user_id,full_name,email')->get();
+
+        return response()->json([
+            'status' => true,
+            'count'  => $doctors->count(),
+            'data'   => $doctors
+        ], 200);
+    }
+
+    public function store(Request $request)
     {
         // 1. توحيد الأسماء مع ما هو موجود في قاعدة البيانات والـ Factory
         $validated = $request->validate([
@@ -26,7 +36,7 @@ class DoctorController extends Controller
 
         try {
             $doctor = DB::transaction(function () use ($validated) {
-                
+
                 // 2. تنظيف الاسم الإنجليزي من الفراغات وتوليد إيميل صالح وفريد
                 $cleanSlug = Str::slug($validated['name_en'], '.');
                 $generatedEmail = $cleanSlug . '.' . '@drasty.com';
@@ -52,7 +62,6 @@ class DoctorController extends Controller
                 'message' => 'تم تسجيل الدكتور وإنشاء حسابه بنجاح',
                 'data'    => $doctor->load('user')
             ], 201);
-
         } catch (Exception $e) {
             return response()->json([
                 'status'  => false,
