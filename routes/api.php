@@ -6,11 +6,13 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\LevelController;
 
 use App\Http\Controllers\CourseOfferingController;
 use App\Http\Controllers\CourseDoctorController;
 
 use App\Http\Controllers\ContentTypeController;
+use App\Http\Controllers\SemesterController;
 
 
 
@@ -34,23 +36,18 @@ Route::get('/departments', [DepartmentController::class, 'index']);
 Route::post('/doctors', [DoctorController::class, 'store']);
 
 //  اضافة مادة
-Route::put('/courses', [CourseController::class, 'store']);
 
 
 // مسارات ربط الفصول والدكاترة
 //  يربط الكورس و السنه والترم
-Route::post('/course-offerings', [CourseOfferingController::class, 'store']);
 //  تعيين دكتور لتدريس مادة 
 Route::post('/course-doctors', [CourseDoctorController::class, 'store']);
 
 
-use App\Http\Controllers\LevelController;
-use App\Http\Controllers\SemesterController;
+
 
 // مسارات المستويات والفصول الدراسية
 Route::get('/levels', [LevelController::class, 'index']);
-Route::post('/levels', [LevelController::class, 'store']);
-Route::post('/semesters', [SemesterController::class, 'store']);
 
 
 
@@ -59,10 +56,8 @@ Route::post('/semesters', [SemesterController::class, 'store']);
 // مسارات العرض والتهيئة للواجهات
 
 // هنا هلهن APIs  العرض
-Route::get('/courses', [CourseController::class, 'index']);
 Route::get('/doctors', [DoctorController::class, 'index']);
 Route::get('/content-types', [ContentTypeController::class, 'index']);
-Route::get('/course-offerings', [CourseOfferingController::class, 'index']);
 Route::get('/course-doctors', [CourseDoctorController::class, 'index']);
 
 
@@ -70,3 +65,32 @@ Route::get('/course-doctors', [CourseDoctorController::class, 'index']);
 Route::post('/departments', [DepartmentController::class, 'store']);
 Route::put('/departments/{id}', [DepartmentController::class, 'update']);
 Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+
+// هذا حذف وتعديل واضافه للمستوى    Level
+Route::post('/levels', [LevelController::class, 'store']);
+Route::put('/levels/{id}', [LevelController::class, 'update']);
+Route::delete('/levels/{id}', [LevelController::class, 'Delet']);
+Route::get('/levels', [LevelController::class, 'index']);
+
+
+// مسارات الفصول الدراسية (Semesters)
+Route::get('/semesters', [SemesterController::class, 'index']);
+Route::post('/semesters', [SemesterController::class, 'store']);
+Route::put('/semesters/{id}', [SemesterController::class, 'update']);
+Route::delete('/semesters/{id}', [SemesterController::class, 'destroy']);
+
+
+
+// هنا ياهيثم  API  حق الواد 
+Route::get('/courses', [CourseController::class, 'index']);
+Route::post('/courses', [CourseController::class, 'store']);
+Route::put('/courses/{id}', [CourseController::class, 'update']);
+Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+
+
+
+// وهذا حق الكورسات المعروضه
+Route::post('/course-offerings', [CourseOfferingController::class, 'store']);
+Route::get('/course-offerings', [CourseOfferingController::class, 'index']);
+Route::put('/course-offerings/{id}', [CourseOfferingController::class, 'update']);
+Route::delete('/course-offerings/{id}', [CourseOfferingController::class, 'destroy']);

@@ -12,10 +12,15 @@ class CourseOffering extends Model
     protected $table = 'course_offerings';
     protected $primaryKey = 'offering_id';
 
-    protected $fillable = [
-        'course_id',
-        'semester_id',
-    ];
+    public $timestamps = false;
+
+   protected $fillable = [
+    'course_code',
+    'course_name_ar',
+    'course_name_en',
+    'description',
+    'credit_hours',
+];
 
     public function course()
     {

@@ -12,7 +12,7 @@ class Semester extends Model
     protected $table = 'semesters';
     protected $primaryKey = 'semester_id';
 
-    const UPDATED_AT = null; // الجدول لا يحتوي على updated_at
+    public $timestamps = false;
 
     protected $fillable = [
         'level_id',
@@ -21,8 +21,15 @@ class Semester extends Model
         'academic_year',
     ];
 
+    // علاقة الفصل بالمستوى الدراسي
     public function level()
     {
         return $this->belongsTo(Level::class, 'level_id', 'level_id');
+    }
+
+    // علاقة الفصل بالمواد المطروحة فيه
+    public function courseOfferings()
+    {
+        return $this->hasMany(CourseOffering::class, 'semester_id', 'semester_id');
     }
 }

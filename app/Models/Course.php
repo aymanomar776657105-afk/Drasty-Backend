@@ -18,4 +18,9 @@ class Course extends Model
         'course_name_en',
         'credit_hours',
     ];
+
+    public function courseOfferings()
+    {
+        return $this->hasMany(CourseOffering::class, 'course_id', 'course_id');
+    }
 }

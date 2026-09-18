@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Course;
+use Illuminate\Validation\Rule;
 use Exception;
 
 class CourseController extends Controller
@@ -18,7 +19,7 @@ class CourseController extends Controller
             'data'   => $courses
         ], 200);
     }
-    
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -42,7 +43,6 @@ class CourseController extends Controller
                 'message' => 'تمت إضافة المادة بنجاح',
                 'data'    => $course
             ], 201);
-
         } catch (Exception $e) {
             return response()->json([
                 'status'  => false,
@@ -52,4 +52,89 @@ class CourseController extends Controller
         }
     }
 
+    // تعديل بيانات مادة دراسية (Update)
+    // تعديل بيانات المادة (الاسم، الكود، الوصف)
+public function update(Request $request, int $id)
+{
+    $course = Course::find($id);
+
+    if (!$course) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'المادة الدراسية المطلوبة غير موجودة.'
+        ], 404);
+    }
+
+    // التحقق من الحقول المسموح بتعديلها فقط مع استثناء المادة الحالية من فحص التكرار
+    $validated = $request->validate([
+        'course_name_ar' => [
+            'sometimes',
+            'required',
+            'string',
+            'max:150',
+            Rule::unique('courses', 'name')->ignore($id, 'course_id')
+        ],
+        'code' => [
+            'sometimes',
+            'required',
+            'string',
+            'max:20',
+            Rule::unique('courses', 'code')->ignore($id, 'course_id')
+        ],
+        'description' => 'nullable|string',
+    ], [
+        'name.required' => 'اسم المادة مطلوب عند التعديل.',
+        'name.unique'   => 'اسم المادة مستخدم بالفعل لمادة أخرى.',
+        'code.required' => 'كود المادة مطلوب.',
+        'code.unique'   => 'كود المادة مسجل لمادة أخرى.',
+    ]);
+
+    // تحديث البيانات المسموح بها فقط دون لمس الـ Primary Key
+    $course->update($validated);
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'تم تحديث بيانات المادة الدراسية بنجاح.',
+        'data'    => $course
+    ], 200);
+}
+
+    public function destroy(int $id)
+    {
+        $course = Course::find($id);
+
+        if (!$course) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'المادة الدراسية المطلوبة غير موجودة.'
+            ], 404);
+        }
+
+        try {
+            // فحص التكامل المرجعي: منع حذف المادة إذا تم طرحها مسبقاً في أي فصل دراسي
+            if (method_exists($course, 'courseOfferings') && $course->courseOfferings()->exists()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'لا يمكن حذف المادة الدراسية نظراً لوجود فصول دراسية ومقررات مطروحة مرتبطة بها.'
+                ], 409);
+            }
+
+            $course->delete();
+
+            return response()->json([
+                'status'  => true,
+                'data'    => [
+                    'course_id'   => $course->course_id,
+                    'course_name' => $course->course_name_ar ?? $course->name,
+                ],
+                'message' => 'تم حذف المادة الدراسية بنجاح.'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'تعذر حذف المادة نظراً لارتباطها ببيانات أكاديمية أخرى.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
 }

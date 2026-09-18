@@ -78,4 +78,90 @@ class CourseOfferingController extends Controller
             ], 500);
         }
     }
+
+    public function update(Request $request, int $id)
+{
+    // جلب الطرح مع المادة المرتبطة
+    $offering = CourseOffering::with('course')->find($id);
+
+    if (!$offering || !$offering->course) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'سجل طرح المادة أو المادة المرتبطة به غير موجود.'
+        ], 404);
+    }
+
+    $validated = $request->validate([
+        'course_name_ar' => 'sometimes|required|string|max:150',
+        'course_name_en' => 'sometimes|nullable|string|max:150', // إضافة الاسم الإنجليزي
+        'course_code'    => 'sometimes|required|string|max:20',
+        'description'    => 'nullable|string',
+        'semester_id'    => 'sometimes|required|exists:semesters,semester_id',
+    ], [
+        'course_name_ar.required' => 'اسم المادة بالعربي مطلوب.',
+        'course_code.required'    => 'كود المادة مطلوب.',
+        'semester_id.exists'      => 'الفصل الدراسي المحدد غير موجود.',
+    ]);
+
+    // 1. تحديث الفصل إن وُجد
+    if ($request->filled('semester_id')) {
+        $offering->update(['semester_id' => $request->semester_id]);
+    }
+
+    // 2. تحديث بيانات المادة كاملة بما فيها course_name_en
+    $offering->course->update($request->only([
+        'course_name_ar',
+        'course_name_en',
+        'course_code',
+        'description'
+    ]));
+
+    // 3. إرجاع الاستجابة (تم تصحيح course_code هنا لمنع خطأ 500)
+    return response()->json([
+        'status'  => true,
+        'message' => 'تم تحديث بيانات المادة المعروضة بنجاح.',
+        'data'    => $offering->fresh()->load([
+            'course:course_id,course_name_ar,course_name_en,course_code,description',
+            'semester:semester_id,name,academic_year'
+        ])
+    ], 200);
+}
+
+    public function destroy(int $id)
+    {
+        $offering = CourseOffering::find($id);
+
+        if (!$offering) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'سجل طرح المادة المطلوب غير موجود.'
+            ], 404);
+        }
+
+        try {
+            // فحص التكامل المرجعي: منع الحذف إذا كان هناك دكاترة معينون لتدريس هذا الطرح
+            if (method_exists($offering, 'courseDoctors') && $offering->courseDoctors()->exists()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'لا يمكن حذف طرح المادة نظراً لتعيين دكاترة ومحاضرين مسجلين لتدريسها.'
+                ], 409);
+            }
+
+            $offering->delete();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'تم إلغاء طرح المادة بنجاح.',
+                'data'    => [
+                    'offering_id' => $offering->getKey()
+                ]
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'تعذر حذف السجل نظراً لارتباطه ببيانات أكاديمية أخرى.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
 }
