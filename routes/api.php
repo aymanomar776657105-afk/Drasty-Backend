@@ -33,7 +33,6 @@ Route::get('/departments', [DepartmentController::class, 'index']);
 // Route::post('/departments', [DepartmentController::class, 'store']);
 
 // اضافة الدكتور لبين ال DB
-Route::post('/doctors', [DoctorController::class, 'store']);
 
 //  اضافة مادة
 
@@ -56,7 +55,6 @@ Route::get('/levels', [LevelController::class, 'index']);
 // مسارات العرض والتهيئة للواجهات
 
 // هنا هلهن APIs  العرض
-Route::get('/doctors', [DoctorController::class, 'index']);
 Route::get('/content-types', [ContentTypeController::class, 'index']);
 Route::get('/course-doctors', [CourseDoctorController::class, 'index']);
 
@@ -94,3 +92,19 @@ Route::post('/course-offerings', [CourseOfferingController::class, 'store']);
 Route::get('/course-offerings', [CourseOfferingController::class, 'index']);
 Route::put('/course-offerings/{id}', [CourseOfferingController::class, 'update']);
 Route::delete('/course-offerings/{id}', [CourseOfferingController::class, 'destroy']);
+
+
+//  اضافة عرض تعديل وحذف الدكاترة
+Route::get('/doctors', [DoctorController::class, 'index']);
+Route::put('/doctors/{id}', [DoctorController::class, 'update']);
+Route::delete('/doctors/{id}', [DoctorController::class, 'destroy']);
+Route::post('/doctors', [DoctorController::class, 'store']);
+
+
+
+// 1. عرض المشرفين ومدراء المحتوى
+Route::get('/staff', [UserController::class, 'indexStaff']);
+// 2. تعديل بيانات مشرف أو مدير محتوى
+Route::put('/staff/{id}', [UserController::class, 'updateStaff']);
+// 3. حذف مشرف أو مدير محتوى
+Route::delete('/staff/{id}', [UserController::class, 'destroyStaff']);
